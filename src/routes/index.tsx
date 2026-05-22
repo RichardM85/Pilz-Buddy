@@ -457,95 +457,20 @@ function ModuleNav({ activeIdx, onSelect }: { activeIdx: number; onSelect: (i: n
 
 
 function Index() {
-  const search = Route.useSearch();
   const navigate = useNavigate({ from: "/" });
-  const { mode, setMode } = useAppMode();
-
-  const isLegacyLexikon = search.tab === "lexikon";
-  const initialTab: Tab = isLegacyLexikon ? "home" : ((search.tab as Tab) ?? "home");
-  const [tab, setTab] = useState<Tab>(initialTab);
-  const [formenActive, setFormenActive] = useState<TaxonomyId | undefined>(undefined);
-
-
-  // Sync URL → state on back/forward
-  useEffect(() => {
-    if (search.tab && search.tab !== "lexikon" && search.tab !== tab) {
-      setTab(search.tab as Tab);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search.tab]);
-
-  useEffect(() => {
-    if (search.tab === "bestimmung" && mode !== "field") setMode("field");
-    if (search.tab && search.tab !== "bestimmung" && search.tab !== "lexikon" && mode !== "learn") {
-      setMode("learn");
-    }
-  }, [mode, search.tab, setMode]);
-
-  if (isLegacyLexikon) {
-    return (
-      <Navigate
-        to="/lexicon"
-        search={search.cat ? ({ cat: search.cat } as never) : (undefined as never)}
-        replace
-      />
-    );
-  }
-
-
-  const updateTab = (t: Tab) => {
-    setTab(t);
-    navigate({
-      search: (prev: IndexSearch) => {
-        const next: IndexSearch = { ...prev };
-        if (t === "home") delete next.tab;
-        else next.tab = t;
-        delete next.cat;
-        return next;
-      },
-      replace: false,
-    });
-  };
-
-  // Jump from Formen-module directly into the dedicated Lexikon route
-  const jumpToLexikon = (typeId: TaxonomyId) => {
-    navigate({ to: "/lexicon", search: { cat: typeId } });
-  };
-
-  const activeIdx = Math.max(0, tabs.findIndex((t) => t.id === tab));
-  const effectiveMode =
-    mode ?? (tab === "bestimmung" ? "field" : tab !== "home" ? "learn" : null);
+  const { setMode } = useAppMode();
 
   const selectMode = (nextMode: AppMode) => {
     setMode(nextMode);
-    updateTab(nextMode === "field" ? "bestimmung" : "home");
+    void navigate({ to: nextMode === "field" ? "/field" : "/learn" });
   };
 
   return (
-    <AppShell hideNavigation={!effectiveMode}>
+    <AppShell hideNavigation>
       <div id="module-anchor" />
-
-      <div key={tab} className="animate-fade-slide space-y-8">
-        {!effectiveMode && tab === "home" && <ModeLanding onSelectMode={selectMode} />}
-        {effectiveMode === "field" && tab === "home" && <FieldModeHome onStart={updateTab} />}
-        {effectiveMode === "learn" && tab === "home" && <LearnModeHome onStart={updateTab} />}
-        {tab === "grundlagen" && <Grundlagen />}
-        {tab === "wetter" && <ForagingWidget />}
-        {tab === "mysterium" && <Mysterium />}
-        {tab === "mythen" && <Mythen />}
-        {tab === "lebensstile" && <Lebensstile />}
-        {tab === "formen" && <Formen onJumpToLexikon={jumpToLexikon} initialActive={formenActive} />}
-        {tab === "guide" && <Guide />}
-        {tab === "bestimmung" && <Bestimmung />}
-        {tab === "quiz" && <Quiz />}
+      <div className="animate-fade-slide space-y-8">
+        <ModeLanding onSelectMode={selectMode} />
       </div>
-
-
-      {effectiveMode && (
-        <footer className="mt-20 border-t border-[#9A7B56] pt-6 text-center text-xs leading-relaxed text-muted-foreground">
-          Mit 🍄 für Wald-Neulinge gemacht. <strong className="text-foreground/80">Wichtig:</strong> Diese App ersetzt keinen Pilzberater. Sammle nur, was du sicher kennst.
-        </footer>
-      )}
     </AppShell>
   );
 }

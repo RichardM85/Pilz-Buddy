@@ -13,6 +13,8 @@ import { Route as SchluesselRouteImport } from './routes/schluessel'
 import { Route as ScannerRouteImport } from './routes/scanner'
 import { Route as SaisonkalenderRouteImport } from './routes/saisonkalender'
 import { Route as LexiconRouteImport } from './routes/lexicon'
+import { Route as LearnRouteImport } from './routes/learn'
+import { Route as FieldRouteImport } from './routes/field'
 import { Route as BasketRouteImport } from './routes/basket'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LexiconIndexRouteImport } from './routes/lexicon.index'
@@ -36,6 +38,16 @@ const SaisonkalenderRoute = SaisonkalenderRouteImport.update({
 const LexiconRoute = LexiconRouteImport.update({
   id: '/lexicon',
   path: '/lexicon',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnRoute = LearnRouteImport.update({
+  id: '/learn',
+  path: '/learn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FieldRoute = FieldRouteImport.update({
+  id: '/field',
+  path: '/field',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BasketRoute = BasketRouteImport.update({
@@ -62,6 +74,8 @@ const LexiconIdRoute = LexiconIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/basket': typeof BasketRoute
+  '/field': typeof FieldRoute
+  '/learn': typeof LearnRoute
   '/lexicon': typeof LexiconRouteWithChildren
   '/saisonkalender': typeof SaisonkalenderRoute
   '/scanner': typeof ScannerRoute
@@ -72,6 +86,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/basket': typeof BasketRoute
+  '/field': typeof FieldRoute
+  '/learn': typeof LearnRoute
   '/saisonkalender': typeof SaisonkalenderRoute
   '/scanner': typeof ScannerRoute
   '/schluessel': typeof SchluesselRoute
@@ -82,6 +98,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/basket': typeof BasketRoute
+  '/field': typeof FieldRoute
+  '/learn': typeof LearnRoute
   '/lexicon': typeof LexiconRouteWithChildren
   '/saisonkalender': typeof SaisonkalenderRoute
   '/scanner': typeof ScannerRoute
@@ -94,6 +112,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/basket'
+    | '/field'
+    | '/learn'
     | '/lexicon'
     | '/saisonkalender'
     | '/scanner'
@@ -104,6 +124,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/basket'
+    | '/field'
+    | '/learn'
     | '/saisonkalender'
     | '/scanner'
     | '/schluessel'
@@ -113,6 +135,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/basket'
+    | '/field'
+    | '/learn'
     | '/lexicon'
     | '/saisonkalender'
     | '/scanner'
@@ -124,6 +148,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BasketRoute: typeof BasketRoute
+  FieldRoute: typeof FieldRoute
+  LearnRoute: typeof LearnRoute
   LexiconRoute: typeof LexiconRouteWithChildren
   SaisonkalenderRoute: typeof SaisonkalenderRoute
   ScannerRoute: typeof ScannerRoute
@@ -158,6 +184,20 @@ declare module '@tanstack/react-router' {
       path: '/lexicon'
       fullPath: '/lexicon'
       preLoaderRoute: typeof LexiconRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn': {
+      id: '/learn'
+      path: '/learn'
+      fullPath: '/learn'
+      preLoaderRoute: typeof LearnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/field': {
+      id: '/field'
+      path: '/field'
+      fullPath: '/field'
+      preLoaderRoute: typeof FieldRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/basket': {
@@ -207,6 +247,8 @@ const LexiconRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BasketRoute: BasketRoute,
+  FieldRoute: FieldRoute,
+  LearnRoute: LearnRoute,
   LexiconRoute: LexiconRouteWithChildren,
   SaisonkalenderRoute: SaisonkalenderRoute,
   ScannerRoute: ScannerRoute,

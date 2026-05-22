@@ -24,17 +24,17 @@ type AppShellProps = {
 };
 
 const fieldNavItems: NavItem[] = [
-  { label: "KI-Pilzcheck", icon: ScanLine, to: "/", search: { tab: "bestimmung" } },
+  { label: "KI-Pilzcheck", icon: ScanLine, to: "/field", search: { tab: "bestimmung" } },
   { label: "Habitat-Check", icon: ScanLine, to: "/scanner" },
   { label: "Schlüssel", icon: Compass, to: "/schluessel" },
   { label: "Sammelkorb", icon: ShoppingBasket, to: "/basket" },
 ];
 
 const learnNavItems: NavItem[] = [
-  { label: "Start", icon: Home, to: "/" },
+  { label: "Start", icon: Home, to: "/learn" },
   { label: "Lexikon", icon: Library, to: "/lexicon" },
   { label: "Suche", icon: Search, action: "search" },
-  { label: "Quiz", icon: GraduationCap, to: "/", search: { tab: "quiz" } },
+  { label: "Quiz", icon: GraduationCap, to: "/learn", search: { tab: "quiz" } },
 ];
 
 const switchItems: Record<AppMode, NavItem> = {
@@ -43,8 +43,8 @@ const switchItems: Record<AppMode, NavItem> = {
 };
 
 function inferMode(path: string, tab?: string): AppMode | null {
-  if (path === "/scanner" || path === "/schluessel" || path === "/basket") return "field";
-  if (path.startsWith("/lexicon") || path === "/saisonkalender") return "learn";
+  if (path === "/field" || path === "/scanner" || path === "/schluessel" || path === "/basket") return "field";
+  if (path === "/learn" || path.startsWith("/lexicon") || path === "/saisonkalender") return "learn";
   if (path === "/" && tab === "bestimmung") return "field";
   if (path === "/" && tab) return "learn";
   return null;
@@ -60,7 +60,8 @@ export function AppShell({ children, hideNavigation = false }: AppShellProps) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const search = useRouterState({ select: (s) => s.location.search }) as { tab?: string } | undefined;
 
-  const effectiveMode = mode ?? inferMode(path, search?.tab);
+  const routeMode = inferMode(path, search?.tab);
+  const effectiveMode = hideNavigation ? null : (routeMode ?? mode);
   const navItems = effectiveMode === "field" ? fieldNavItems : effectiveMode === "learn" ? learnNavItems : [];
   const subtitle =
     effectiveMode === "field"
@@ -74,8 +75,7 @@ export function AppShell({ children, hideNavigation = false }: AppShellProps) {
     if (it.action?.startsWith("switch")) return false;
     if (!it.to) return false;
     if (it.to === "/lexicon") return path.startsWith("/lexicon");
-    if (it.to === "/" && it.search?.tab) return path === "/" && search?.tab === it.search.tab;
-    if (it.to === "/") return path === "/" && !search?.tab;
+    if (it.search?.tab) return path === it.to && search?.tab === it.search.tab;
     return path === it.to;
   };
 
@@ -83,8 +83,8 @@ export function AppShell({ children, hideNavigation = false }: AppShellProps) {
     setMode(nextMode);
     void navigate(
       nextMode === "field"
-        ? { to: "/", search: { tab: "bestimmung" } as never }
-        : { to: "/", search: {} as never },
+        ? { to: "/field", search: {} as never }
+        : { to: "/learn", search: {} as never },
     );
   };
 

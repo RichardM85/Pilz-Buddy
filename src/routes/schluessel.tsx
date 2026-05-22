@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  Compass, ArrowLeft, ArrowRight, RotateCcw, Skull, AlertTriangle,
+  Compass, ArrowLeft, ArrowRight, RotateCcw, Skull,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useMushrooms, type Mushroom } from "@/lib/useMushrooms";
@@ -318,14 +318,6 @@ function SchluesselPage() {
                   <RotateCcw className="h-3.5 w-3.5" /> Neu starten
                 </button>
               </div>
-            </div>
-
-            <div className="flex items-start gap-2 rounded-2xl border-2 border-orange-700 bg-orange-950/40 p-3 text-xs font-bold text-orange-200">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>
-                Diese Eingrenzung ist nur eine Lern-Hilfe. Vor dem Verzehr <strong>immer</strong> einen
-                geprüften Pilzsachverständigen (DGfM) konsultieren.
-              </span>
             </div>
 
             {results.length > 0 ? (

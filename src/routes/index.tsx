@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Navigate } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Sparkles, TreePine, Shapes, BookOpen, GraduationCap, Home, CloudRain, ScanSearch, ShieldAlert, Compass, ChevronLeft, ChevronRight } from "lucide-react";
+import { Sparkles, TreePine, Shapes, BookOpen, GraduationCap, Home, CloudRain, ScanSearch, ShieldAlert, Compass, ChevronLeft, ChevronRight, Camera, ArrowRight, Library, MapPin } from "lucide-react";
 import { Mysterium } from "@/components/modules/Mysterium";
 import { Lebensstile } from "@/components/modules/Lebensstile";
 import { Formen } from "@/components/modules/Formen";
@@ -11,7 +11,7 @@ import { Bestimmung } from "@/components/modules/Bestimmung";
 import { Mythen } from "@/components/modules/Mythen";
 import { Grundlagen } from "@/components/modules/Grundlagen";
 import { AppShell } from "@/components/AppShell";
-import { SeasonTicker } from "@/components/SeasonTicker";
+import { useAppMode, type AppMode } from "@/lib/appMode";
 import { TAXONOMY, type TaxonomyId } from "@/lib/taxonomy";
 
 
@@ -40,6 +40,160 @@ const tabs: { id: Tab; label: string; icon: typeof Home }[] = [
   { id: "lebensstile", label: "Lebensstile", icon: TreePine },
   { id: "formen", label: "Formen", icon: Shapes },
 ];
+
+function ModeLanding({ onSelectMode }: { onSelectMode: (mode: AppMode) => void }) {
+  return (
+    <section className="space-y-8">
+      <div className="relative overflow-hidden rounded-[2rem] border-2 border-[#9A7B56] bg-[#132219] p-5 text-[#EADECC] shadow-[var(--shadow-soft)] md:p-8">
+        <picture aria-hidden="true">
+          <source media="(min-width: 1024px)" srcSet="/hero-bg-l.png" />
+          <source media="(min-width: 768px)" srcSet="/hero-bg-m.png" />
+          <img
+            src="/hero-bg-s.png"
+            alt=""
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover object-bottom opacity-45"
+          />
+        </picture>
+        <div className="absolute inset-0 bg-gradient-to-br from-[#132219] via-[#132219]/92 to-[#1F3327]/72" />
+
+        <div className="relative">
+          <span className="inline-flex items-center gap-2 rounded-full border-2 border-[#D97D3E] bg-[#1F3327]/95 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#F0C9A8]">
+            FungaStarter Feldhelfer
+          </span>
+          <div className="mt-5 max-w-3xl">
+            <h1 className="font-display text-4xl font-black leading-tight text-[#F0E0CC] md:text-6xl">
+              Was möchtest du gerade tun?
+            </h1>
+            <p className="mt-4 max-w-2xl text-base font-semibold leading-relaxed text-[#EBD9C4] md:text-lg">
+              Draußen zählt ein klarer nächster Schritt. Wähle den Feldhelfer für schnelle,
+              sicherheitsbewusste Unterstützung oder den Lernmodus, wenn du Pilzwissen in Ruhe aufbauen willst.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="rounded-[1.75rem] border-2 border-[#D97D3E] bg-gradient-to-br from-[#D97D3E] to-[#9A4F2D] p-5 text-white shadow-[var(--shadow-glow)] md:p-7">
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/18">
+                  <ScanSearch className="h-7 w-7" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/80">
+                    Primärer Modus
+                  </p>
+                  <h2 className="mt-1 font-display text-3xl font-black leading-tight md:text-4xl">
+                    Fund im Feld prüfen
+                  </h2>
+                  <p className="mt-3 text-sm font-bold leading-relaxed text-white/90 md:text-base">
+                    KI-Pilzcheck, Habitat-Check und Feldwerkzeuge für unterwegs.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => onSelectMode("field")}
+                className="tactile mt-6 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-[#132219] px-5 py-3 text-base font-black text-[#F0E0CC] shadow-lg hover:bg-[#1F3327] sm:w-auto"
+              >
+                Feldhelfer öffnen <ArrowRight className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="rounded-[1.75rem] border-2 border-[#9A7B56] bg-[#1F3327]/92 p-5 shadow-[var(--shadow-soft)] md:p-7">
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#D97D3E]/18 text-[#E9A15A]">
+                  <BookOpen className="h-7 w-7" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#BCA385]">
+                    Begleitmodus
+                  </p>
+                  <h2 className="mt-1 font-display text-3xl font-black leading-tight text-[#F0E0CC] md:text-4xl">
+                    Pilzwissen aufbauen
+                  </h2>
+                  <p className="mt-3 text-sm font-bold leading-relaxed text-[#D8C5AC] md:text-base">
+                    Lerne Arten, Merkmale und Verwechslungen Schritt für Schritt.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => onSelectMode("learn")}
+                className="tactile mt-6 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-[#D97D3E] bg-[#132219] px-5 py-3 text-base font-black text-[#F0E0CC] hover:bg-[#243D2F] sm:w-auto"
+              >
+                Lernmodus starten <ArrowRight className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FieldModeHome({ onStart }: { onStart: (t: Tab) => void }) {
+  const navigate = useNavigate({ from: "/" });
+
+  return (
+    <section className="space-y-6">
+      <div className="rounded-[2rem] border-2 border-[#D97D3E] bg-gradient-to-br from-[#D97D3E] to-[#8F432A] p-6 text-white shadow-[var(--shadow-glow)] md:p-8">
+        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/75">Feldmodus</p>
+        <h1 className="mt-2 font-display text-4xl font-black leading-tight md:text-6xl">Fund im Feld prüfen</h1>
+        <p className="mt-4 max-w-2xl text-base font-bold leading-relaxed text-white/90 md:text-lg">
+          Schneller, mobiler Ablauf für draußen: erst Bildcheck, dann Habitat und Merkmale einordnen.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            onClick={() => onStart("bestimmung")}
+            className="tactile inline-flex min-h-[52px] items-center gap-2 rounded-2xl bg-[#132219] px-5 py-3 font-black text-[#F0E0CC] hover:bg-[#1F3327]"
+          >
+            <Camera className="h-5 w-5" />
+            KI-Pilzcheck starten
+          </button>
+          <button
+            onClick={() => navigate({ to: "/scanner" })}
+            className="tactile inline-flex min-h-[52px] items-center gap-2 rounded-2xl border-2 border-white/40 bg-white/12 px-5 py-3 font-black text-white hover:bg-white/20"
+          >
+            <MapPin className="h-5 w-5" />
+            Habitat-Check öffnen
+          </button>
+        </div>
+      </div>
+
+    </section>
+  );
+}
+
+function LearnModeHome({ onStart }: { onStart: (t: Tab) => void }) {
+  const navigate = useNavigate({ from: "/" });
+
+  return (
+    <section className="space-y-6">
+      <div className="rounded-[2rem] border-2 border-[#9A7B56] bg-[#1F3327] p-6 text-[#EADECC] shadow-[var(--shadow-soft)] md:p-8">
+        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#BCA385]">Lernmodus</p>
+        <h1 className="mt-2 font-display text-4xl font-black leading-tight text-[#F0E0CC] md:text-6xl">
+          Pilzwissen aufbauen
+        </h1>
+        <p className="mt-4 max-w-2xl text-base font-bold leading-relaxed text-[#D8C5AC] md:text-lg">
+          Lerne Arten, Merkmale und Verwechslungen Schritt für Schritt, ohne den Feldworkflow zu überladen.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            onClick={() => onStart("grundlagen")}
+            className="tactile inline-flex min-h-[52px] items-center gap-2 rounded-2xl bg-[#D97D3E] px-5 py-3 font-black text-white shadow-[var(--shadow-glow)]"
+          >
+            <BookOpen className="h-5 w-5" />
+            Grundlagen starten
+          </button>
+          <button
+            onClick={() => navigate({ to: "/lexicon" })}
+            className="tactile inline-flex min-h-[52px] items-center gap-2 rounded-2xl border-2 border-[#9A7B56] bg-[#132219] px-5 py-3 font-black text-[#F0E0CC] hover:border-[#D97D3E]"
+          >
+            <Library className="h-5 w-5" />
+            Lexikon öffnen
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function Hero({ onStart }: { onStart: (t: Tab) => void }) {
   const navigate = useNavigate({ from: "/" });
@@ -305,6 +459,7 @@ function ModuleNav({ activeIdx, onSelect }: { activeIdx: number; onSelect: (i: n
 function Index() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/" });
+  const { mode, setMode } = useAppMode();
 
   const isLegacyLexikon = search.tab === "lexikon";
   const initialTab: Tab = isLegacyLexikon ? "home" : ((search.tab as Tab) ?? "home");
@@ -319,6 +474,13 @@ function Index() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.tab]);
+
+  useEffect(() => {
+    if (search.tab === "bestimmung" && mode !== "field") setMode("field");
+    if (search.tab && search.tab !== "bestimmung" && search.tab !== "lexikon" && mode !== "learn") {
+      setMode("learn");
+    }
+  }, [mode, search.tab, setMode]);
 
   if (isLegacyLexikon) {
     return (
@@ -351,14 +513,22 @@ function Index() {
   };
 
   const activeIdx = Math.max(0, tabs.findIndex((t) => t.id === tab));
+  const effectiveMode =
+    mode ?? (tab === "bestimmung" ? "field" : tab !== "home" ? "learn" : null);
+
+  const selectMode = (nextMode: AppMode) => {
+    setMode(nextMode);
+    updateTab(nextMode === "field" ? "bestimmung" : "home");
+  };
 
   return (
-    <AppShell>
+    <AppShell hideNavigation={!effectiveMode}>
       <div id="module-anchor" />
-      <ModuleNav activeIdx={activeIdx} onSelect={(i) => updateTab(tabs[i].id)} />
 
       <div key={tab} className="animate-fade-slide space-y-8">
-        {tab === "home" && <><Hero onStart={updateTab} /><SeasonTicker /></>}
+        {!effectiveMode && tab === "home" && <ModeLanding onSelectMode={selectMode} />}
+        {effectiveMode === "field" && tab === "home" && <FieldModeHome onStart={updateTab} />}
+        {effectiveMode === "learn" && tab === "home" && <LearnModeHome onStart={updateTab} />}
         {tab === "grundlagen" && <Grundlagen />}
         {tab === "wetter" && <ForagingWidget />}
         {tab === "mysterium" && <Mysterium />}
@@ -371,9 +541,11 @@ function Index() {
       </div>
 
 
-      <footer className="mt-20 border-t border-[#9A7B56] pt-6 text-center text-xs leading-relaxed text-muted-foreground">
-        Mit 🍄 für Wald-Neulinge gemacht. <strong className="text-foreground/80">Wichtig:</strong> Diese App ersetzt keinen Pilzberater. Sammle nur, was du sicher kennst.
-      </footer>
+      {effectiveMode && (
+        <footer className="mt-20 border-t border-[#9A7B56] pt-6 text-center text-xs leading-relaxed text-muted-foreground">
+          Mit 🍄 für Wald-Neulinge gemacht. <strong className="text-foreground/80">Wichtig:</strong> Diese App ersetzt keinen Pilzberater. Sammle nur, was du sicher kennst.
+        </footer>
+      )}
     </AppShell>
   );
 }

@@ -2,9 +2,10 @@ node_modules
 dist
 .tanstack
 .wrangler
-.vercel
+.vercel/output
 .env
-.env.local
+.env.*
 *.zip
+Pilz-Freunde Guide.zip
 Default.rdp
 hosts.txt

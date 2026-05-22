@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   ShoppingBasket, Trash2, Plus, Minus, MapPin, Copy, ExternalLink,
-  Check, ArrowLeft, AlertTriangle,
+  Check, ArrowLeft,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useBasket } from "@/lib/basket";
@@ -109,11 +109,7 @@ function BasketPage() {
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between rounded-2xl border-2 border-[#9A7B56] bg-[#1F3327] px-4 py-3">
-              <div className="flex items-center gap-2 text-xs font-bold text-[#BCA385]">
-                <AlertTriangle className="h-4 w-4 text-[#D97D3E]" />
-                Sammle nur, was du sicher kennst.
-              </div>
+            <div className="flex items-center justify-end rounded-2xl border-2 border-[#9A7B56] bg-[#1F3327] px-4 py-3">
               <button
                 type="button"
                 onClick={() => { if (confirm("Korb komplett leeren?")) clear(); }}

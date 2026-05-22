@@ -1,14 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import {
   Camera, Upload, Scissors, Eye, Layers, Sparkles, Loader2, AlertTriangle,
   RefreshCw, CheckCircle2, X, MapPin, Calendar, ShieldCheck, Info, ScanSearch,
-  ListChecks, ShieldAlert, BookMarked, ExternalLink, Skull,
+  ListChecks, BookMarked, ExternalLink, Skull,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { taxonomyById, type TaxonomyGroup } from "@/lib/taxonomy";
-import { SafetyFooter } from "@/components/SafetyFooter";
 import { identifyMushroom, type BestimmungResult } from "@/lib/bestimmung.functions";
 
 type Mushroom = Tables<"mushrooms">;
@@ -22,9 +21,9 @@ type Slot = {
 };
 
 const SLOTS: Slot[] = [
-  { id: "hut", title: "1 · Hutseite", hint: "Aufsicht von oben – komplette Hutform sichtbar.", icon: Eye },
-  { id: "unten", title: "2 · Fruchtschicht & Fuß", hint: "Unterseite (Röhren/Lamellen/Leisten/Poren) + Stielbasis.", icon: Layers },
-  { id: "schnitt", title: "3 · Schnittbild", hint: "Längs durchgeschnitten – Verfärbungen im Fleisch?", icon: Scissors },
+  { id: "hut", title: "Foto 1 · Fundfoto", hint: "Ein scharfes Foto reicht für den ersten KI-Check.", icon: Eye },
+  { id: "unten", title: "Optional · Unterseite", hint: "Hilft später: Röhren/Lamellen/Leisten/Poren + Stielbasis.", icon: Layers },
+  { id: "schnitt", title: "Optional · Schnittbild", hint: "Hilft später: längs durchgeschnitten, Verfärbungen sichtbar.", icon: Scissors },
 ];
 
 const SPINNER_MESSAGES = [
@@ -36,6 +35,9 @@ const SPINNER_MESSAGES = [
 ];
 
 const DANGEROUS_DIFFICULTIES = new Set(["Giftig", "Tödlich Giftig"]);
+const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const ACCEPTED_IMAGE_EXTENSIONS = /\.(jpe?g|png|webp)$/i;
+const IMAGE_ACCEPT = "image/jpeg,image/png,image/webp";
 
 function confidenceTone(c: number) {
   if (c >= 85) return { label: "Sehr sicher", cls: "bg-moss/15 text-moss border-moss/30" };
@@ -44,11 +46,57 @@ function confidenceTone(c: number) {
 }
 
 function PhotoSlot({
-  slot, file, onPick, onClear, analyzing, index,
-}: { slot: Slot; file: string | null; onPick: (f: File) => void; onClear: () => void; analyzing: boolean; index: number }) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  slot, file, onPick, onClear, onError, analyzing, index,
+}: {
+  slot: Slot;
+  file: string | null;
+  onPick: (f: File) => void;
+  onClear: () => void;
+  onError: (message: string) => void;
+  analyzing: boolean;
+  index: number;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false);
   const Icon = slot.icon;
   const code = String(index + 1).padStart(2, "0");
+
+  useEffect(() => {
+    let cancelled = false;
+    const permissions = typeof navigator !== "undefined" ? navigator.permissions : undefined;
+    if (!permissions?.query) return;
+    permissions
+      .query({ name: "camera" as PermissionName })
+      .then((status) => {
+        if (!cancelled) setCameraPermissionDenied(status.state === "denied");
+        status.onchange = () => setCameraPermissionDenied(status.state === "denied");
+      })
+      .catch(() => {
+        // Camera permission querying is not supported everywhere; the file input remains the fallback.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) onPick(f);
+    e.target.value = "";
+  };
+
+  const openCamera = async () => {
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      onError("Kamera-Zugriff braucht HTTPS. Auf Vercel funktioniert das, lokal bitte ein gespeichertes Bild auswählen.");
+      return;
+    }
+    if (cameraPermissionDenied) {
+      onError("Kamera-Zugriff wurde abgelehnt. Du kannst stattdessen ein Foto aus der Galerie auswählen.");
+      return;
+    }
+    cameraInputRef.current?.click();
+  };
   return (
     <div className="group rounded-2xl border-2 border-[#9A7B56] bg-[#1F3327] p-4 transition-all duration-500 hover:border-[#D97D3E]">
       <div className="flex items-center gap-2">
@@ -68,7 +116,8 @@ function PhotoSlot({
       </div>
 
       <button
-        onClick={() => inputRef.current?.click()}
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
         className="tactile viewfinder mt-3 block w-full overflow-hidden rounded-xl border-2 border-[#9A7B56] bg-[#132219]"
       >
         <span className="vf-bl" /><span className="vf-br" />
@@ -94,23 +143,45 @@ function PhotoSlot({
         ) : (
           <div className="flex h-44 flex-col items-center justify-center gap-1.5 text-[#BCA385] transition group-hover:text-[#D97D3E]">
             <Upload className="h-6 w-6" />
-            <span className="text-xs font-bold tracking-wide">Foto wählen</span>
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] opacity-70">Tap to capture</span>
+            <span className="text-xs font-bold tracking-wide">Foto aufnehmen oder auswählen</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] opacity-70">Ein Foto reicht für den MVP</span>
           </div>
         )}
       </button>
 
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={analyzing}
+          className="tactile min-h-[44px] rounded-xl border-2 border-[#9A7B56] bg-[#132219] px-3 py-2 text-xs font-black text-[#EADECC] hover:border-[#D97D3E] disabled:opacity-60"
+        >
+          Foto aufnehmen oder Bild auswählen
+        </button>
+        <button
+          type="button"
+          onClick={openCamera}
+          disabled={analyzing}
+          className="tactile min-h-[44px] rounded-xl bg-[#D97D3E] px-3 py-2 text-xs font-black text-white shadow-[var(--shadow-glow)] disabled:opacity-60"
+        >
+          Kamera öffnen
+        </button>
+      </div>
+
       <input
-        ref={inputRef}
+        ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept={IMAGE_ACCEPT}
+        hidden
+        onChange={handleChange}
+      />
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept={IMAGE_ACCEPT}
         capture="environment"
         hidden
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) onPick(f);
-          e.target.value = "";
-        }}
+        onChange={handleChange}
       />
     </div>
   );
@@ -134,6 +205,7 @@ export function Bestimmung() {
   });
   const [mushrooms, setMushrooms] = useState<Mushroom[]>([]);
   const [loading, setLoading] = useState(true);
+  const [databaseError, setDatabaseError] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [spinIdx, setSpinIdx] = useState(0);
   const [result, setResult] = useState<{
@@ -149,9 +221,17 @@ export function Bestimmung() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("mushrooms").select("*");
-      setMushrooms(data ?? []);
-      setLoading(false);
+      try {
+        const { data, error } = await supabase.from("mushrooms").select("*");
+        if (error) throw error;
+        setMushrooms(data ?? []);
+        setDatabaseError(null);
+      } catch (e) {
+        console.warn("[KI-Pilzcheck] mushroom database load failed", e);
+        setDatabaseError("Die Pilzdatenbank konnte nicht geladen werden. Der KI-Check braucht eine Internetverbindung.");
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
@@ -161,12 +241,10 @@ export function Bestimmung() {
     return () => clearInterval(t);
   }, [analyzing]);
 
-  const allFilled = useMemo(
-    () => photos.hut && photos.unten && photos.schnitt,
-    [photos],
-  );
+  const selectedPhotoCount = useMemo(() => Object.values(photos).filter(Boolean).length, [photos]);
+  const hasPhoto = selectedPhotoCount >= 1;
 
-  const fileToDataUrl = (f: File): Promise<string> =>
+  const readFileAsDataUrl = (f: File): Promise<string> =>
     new Promise((resolve, reject) => {
       const r = new FileReader();
       r.onload = () => resolve(r.result as string);
@@ -174,16 +252,60 @@ export function Bestimmung() {
       r.readAsDataURL(f);
     });
 
-  const pickFile = async (slot: SlotId, f: File) => {
-    const url = URL.createObjectURL(f);
-    setPhotos((p) => {
-      if (p[slot]) URL.revokeObjectURL(p[slot]!);
-      return { ...p, [slot]: url };
-    });
+  const fileToDataUrl = async (f: File): Promise<string> => {
+    const isAcceptedType = ACCEPTED_IMAGE_TYPES.has(f.type);
+    const isAcceptedExtension = ACCEPTED_IMAGE_EXTENSIONS.test(f.name);
+    if (!isAcceptedType && !isAcceptedExtension) {
+      throw new Error("Bitte wähle ein Bild im Format JPG, JPEG, PNG oder WebP aus.");
+    }
+
+    const originalDataUrl = await readFileAsDataUrl(f);
+    const img = new Image();
+    img.src = originalDataUrl;
+
     try {
-      photosB64.current[slot] = await fileToDataUrl(f);
+      await img.decode();
     } catch {
+      return originalDataUrl;
+    }
+
+    const maxSide = 1600;
+    const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+    if (scale >= 1 && f.size < 1_800_000) return originalDataUrl;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return originalDataUrl;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.82);
+  };
+
+  const pickFile = async (slot: SlotId, f: File) => {
+    setAiError(null);
+    let url: string | null = null;
+    try {
+      const dataUrl = await fileToDataUrl(f);
+      url = URL.createObjectURL(f);
+      photosB64.current[slot] = dataUrl;
+      setPhotos((p) => {
+        if (p[slot]) URL.revokeObjectURL(p[slot]!);
+        return { ...p, [slot]: url };
+      });
+    } catch (e) {
+      console.warn("[KI-Pilzcheck] image preparation failed", e);
+      if (url) URL.revokeObjectURL(url);
       photosB64.current[slot] = null;
+      setPhotos((p) => {
+        if (p[slot]) URL.revokeObjectURL(p[slot]!);
+        return { ...p, [slot]: null };
+      });
+      setAiError(
+        e instanceof Error
+          ? e.message
+          : "Das Foto konnte nicht gelesen werden. Bitte versuche ein anderes Bild.",
+      );
     }
   };
 
@@ -205,7 +327,22 @@ export function Bestimmung() {
   };
 
   const analyze = async () => {
-    if (!allFilled || mushrooms.length === 0) return;
+    if (!hasPhoto) {
+      setAiError("Bitte nimm zuerst ein Foto auf oder wähle ein Bild aus.");
+      return;
+    }
+    if (databaseError) {
+      setAiError(databaseError);
+      return;
+    }
+    if (loading) {
+      setAiError("Die Pilzdatenbank lädt noch. Bitte warte kurz und tippe dann erneut auf „Fund prüfen“.");
+      return;
+    }
+    if (mushrooms.length === 0) {
+      setAiError("Die Pilzdatenbank ist noch nicht geladen. Bitte warte kurz und versuche es erneut.");
+      return;
+    }
     setAnalyzing(true);
     setResult(null);
     setDangerAck(false);
@@ -214,6 +351,11 @@ export function Bestimmung() {
       const photosPayload = (["hut", "unten", "schnitt"] as SlotId[])
         .map((slot) => ({ slot, dataUrl: photosB64.current[slot] }))
         .filter((p): p is { slot: SlotId; dataUrl: string } => !!p.dataUrl);
+
+      if (photosPayload.length < 1) {
+        setAiError("Das Foto konnte nicht vorbereitet werden. Bitte nimm es erneut auf oder wähle ein anderes Bild.");
+        return;
+      }
 
       const candidates = mushrooms.map((m) => ({
         id: m.id,
@@ -229,14 +371,19 @@ export function Bestimmung() {
       const pick = ai.id ? mushrooms.find((m) => m.id === ai.id) : null;
       if (!pick) {
         setAiError(
-          "Die KI konnte keine sichere Zuordnung treffen. Probiere bessere Fotos (Tageslicht, Hut + Unterseite + Schnitt scharf) oder frag einen Pilzsachverständigen.",
+          "Die KI konnte keine sichere Zuordnung treffen. Probiere ein schärferes Foto bei Tageslicht oder frag einen Pilzsachverständigen.",
         );
       } else {
         const group = taxonomyById(pick.type);
         setResult({ mushroom: pick, confidence: ai.confidence, group, ai });
       }
     } catch (e) {
-      setAiError(e instanceof Error ? e.message : "Unbekannter KI-Fehler.");
+      console.warn("[KI-Pilzcheck] AI request failed", e);
+      setAiError(
+        e instanceof Error
+          ? e.message
+          : "Der KI-Check ist fehlgeschlagen. Bitte prüfe deine Verbindung und versuche es erneut.",
+      );
     } finally {
       setAnalyzing(false);
     }
@@ -252,24 +399,16 @@ export function Bestimmung() {
         </div>
         <h2 className="mt-3 text-4xl font-bold text-primary md:text-5xl">Pilz-Bestimmung</h2>
         <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-          Drei Fotos, eine echte KI-Analyse (GPT-4o Vision) gegen unsere Lexikon-Arten — mit nachvollziehbarem Bestimmungspfad. Du bleibst kritisch.
+          Ein Foto reicht für den ersten KI-Check. Weitere Fotos von Unterseite oder Schnittbild sind optional und verbessern die Einordnung.
         </p>
       </header>
 
       {/* Warnung */}
-      <div className="flex items-start gap-3 rounded-2xl border-2 border-destructive/40 bg-destructive/10 p-4">
-        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
-        <p className="text-sm leading-relaxed text-foreground/85">
-          <strong className="text-destructive">WICHTIG:</strong> Die KI ist ein Assistent, <strong>keine Verzehrfreigabe</strong>.
-          Vergleiche IMMER mit den Merkmalen im Lexikon und frage im Zweifel einen Pilzsachverständigen (DGfM)!
-        </p>
-      </div>
-
       {/* Foto-Slots */}
       <div className="space-y-4 rounded-3xl border-2 border-border bg-card p-5 shadow-[var(--shadow-soft)]">
         <div className="flex items-center justify-between">
           <h3 className="flex items-center gap-2 font-bold text-primary">
-            <Camera className="h-4 w-4 text-accent" /> Dein Foto-Trio
+            <Camera className="h-4 w-4 text-accent" /> Foto aufnehmen oder auswählen
           </h3>
           {(photos.hut || photos.unten || photos.schnitt) && (
             <button onClick={reset} className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-destructive">
@@ -286,6 +425,7 @@ export function Bestimmung() {
               file={photos[s.id]}
               onPick={(f) => pickFile(s.id, f)}
               onClear={() => clearSlot(s.id)}
+              onError={setAiError}
               analyzing={analyzing}
               index={i}
             />
@@ -293,12 +433,15 @@ export function Bestimmung() {
         </div>
 
         <p className="text-[11px] italic text-muted-foreground">
-          Tipp: Tageslicht, ruhiger Hintergrund, Hut wenn möglich nicht angefressen. Optional Sporenabdruck später dazu.
+          Tipp: Tageslicht, ruhiger Hintergrund und ein scharfes Bild helfen der KI. Unterseite und Schnittbild sind optional.
+        </p>
+        <p className="rounded-2xl border-2 border-[#9A7B56] bg-[#132219] px-4 py-3 text-xs font-bold leading-relaxed text-[#BCA385]">
+          Kein Netz im Wald? Mach Fotos und prüfe sie später zuhause im WLAN. Die KI-Einschätzung selbst braucht Internet.
         </p>
 
         <button
           onClick={analyze}
-          disabled={!allFilled || analyzing || loading}
+          disabled={!hasPhoto || analyzing}
           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-4 font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
         >
           {analyzing ? (
@@ -308,7 +451,7 @@ export function Bestimmung() {
           ) : (
             <>
               <Sparkles className="h-5 w-5" />
-              {allFilled ? "Pilz analysieren" : `Noch ${3 - Object.values(photos).filter(Boolean).length} Foto(s) fehlen`}
+              {hasPhoto ? "Fund prüfen" : "Foto aufnehmen oder Bild auswählen"}
             </>
           )}
         </button>
@@ -329,7 +472,6 @@ export function Bestimmung() {
         <DangerModal mushroom={result!.mushroom} onAck={() => setDangerAck(true)} />
       )}
 
-      <SafetyFooter />
     </section>
   );
 }
@@ -462,10 +604,6 @@ function ResultCard({ mushroom, confidence, group, ai }: { mushroom: Mushroom; c
           </div>
         </div>
 
-        <div className="rounded-2xl border-2 border-destructive/40 bg-destructive/10 p-3 text-center text-xs font-semibold text-destructive">
-          <ShieldAlert className="mr-1 inline h-3.5 w-3.5" />
-          Keine Verzehrfreigabe! Im Zweifel immer Pilzsachverständigen fragen.
-        </div>
       </div>
     </div>
   );

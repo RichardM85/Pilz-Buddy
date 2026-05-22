@@ -10,6 +10,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { BasketProvider } from "@/lib/basket";
+import { AppModeProvider } from "@/lib/appMode";
 import { AmbientLeaves } from "@/components/AmbientLeaves";
 
 function NotFoundComponent() {
@@ -73,7 +74,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="de" className="dark">
       <head><HeadContent /></head>
       <body style={{ fontFamily: "Nunito, system-ui, sans-serif" }}>
-        <BasketProvider>{children}</BasketProvider>
+        <AppModeProvider>
+          <BasketProvider>{children}</BasketProvider>
+        </AppModeProvider>
         <Scripts />
       </body>
     </html>

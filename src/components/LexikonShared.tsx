@@ -30,7 +30,6 @@ function normalizeDifficulty(raw: string): string {
   return raw;
 }
 import { TAXONOMY_IDS } from "@/lib/taxonomy";
-import { SafetyFooter } from "@/components/SafetyFooter";
 import { SpeciesImage } from "@/components/SpeciesImage";
 import { WikipediaImage } from "@/components/WikipediaImage";
 import { useMushrooms, useMushroom, type Mushroom } from "@/lib/useMushrooms";
@@ -445,8 +444,6 @@ export function LexikonRouteView() {
 
       <PagedGrid mushrooms={filtered} isLoading={isLoading} />
 
-
-      <SafetyFooter />
     </section>
   );
 }
@@ -778,8 +775,6 @@ export function MushroomDetailPage({ id }: { id: string }) {
           </div>
         </div>
       </div>
-
-      <SafetyFooter />
     </article>
   );
 }

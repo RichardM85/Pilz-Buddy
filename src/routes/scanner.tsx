@@ -9,10 +9,10 @@ import { AppShell } from "@/components/AppShell";
 export const Route = createFileRoute("/scanner")({
   head: () => ({
     meta: [
-      { title: "KI Habitat-Scanner · FungaStarter" },
-      { name: "description", content: "Scanne deinen Wald, erkenne Bäume & Boden und erhalte saisonale Pilz-Empfehlungen." },
-      { property: "og:title", content: "KI Habitat-Scanner · FungaStarter" },
-      { property: "og:description", content: "Ökologische Foto-Analyse für gezieltes Sammeln." },
+      { title: "Habitat-Check Demo · FungaStarter" },
+      { name: "description", content: "Demo-Platzhalter für den künftigen Habitat-Check." },
+      { property: "og:title", content: "Habitat-Check Demo · FungaStarter" },
+      { property: "og:description", content: "Noch keine echte ökologische Foto-Analyse." },
     ],
   }),
   component: ScannerPage,
@@ -104,14 +104,14 @@ function ScannerPage() {
       <section className="space-y-6">
         <header className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border-2 border-[#9A7B56] bg-[#1F3327] px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-[#D97D3E]">
-            <ScanLine className="h-3.5 w-3.5" /> Neuronale Habitat-Erkennung
+            <ScanLine className="h-3.5 w-3.5" /> Demo-Platzhalter
           </div>
           <h1 className="font-display text-4xl font-bold leading-tight text-[#E9A15A] md:text-5xl">
-            KI Habitat-Scanner
+            Habitat-Check Demo
           </h1>
           <p className="max-w-2xl text-sm font-semibold text-[#EADECC]/90 md:text-base">
-            Richte die Kamera auf deinen Waldabschnitt. Unser Modell analysiert Baumarten,
-            Bodentyp & Saison — und sagt dir, welche Pilze hier <em>jetzt</em> wachsen können.
+            Noch keine echte Analyse: Diese Ansicht simuliert Habitat-Ergebnisse mit Beispieldaten.
+            Der echte MVP-Habitat-Check folgt als eigener manueller Fragebogen.
           </p>
         </header>
 
@@ -156,10 +156,10 @@ function ScannerPage() {
                 <div className="absolute inset-0 grid place-items-center">
                   <div className="rounded-2xl border-2 border-[#D97D3E] bg-[#1F3327]/90 px-5 py-3 text-center">
                     <p className="font-display text-lg font-bold text-[#E9A15A] animate-pulse">
-                      KI-Analyse läuft…
+                      Demo-Auswertung läuft…
                     </p>
                     <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.22em] text-[#BCA385]">
-                      Neuronales Netz · Habitat-Modell v3
+                      Simulierte Beispieldaten
                     </p>
                   </div>
                 </div>
@@ -175,12 +175,11 @@ function ScannerPage() {
           <div className="grid gap-3 sm:grid-cols-2">
             <button
               onClick={() => {
-                // Simulated capture — no real getUserMedia
                 runAnalysis(null);
               }}
               className="tactile flex min-h-[56px] items-center justify-center gap-2 rounded-2xl border-2 border-[#D97D3E] bg-[#D97D3E] px-5 py-3 text-base font-bold text-[#132219] shadow-[var(--shadow-glow)] transition hover:bg-[#E9A15A]"
             >
-              <Camera className="h-5 w-5" /> Foto aufnehmen
+              <Camera className="h-5 w-5" /> Demo ohne Foto starten
             </button>
             <button
               onClick={() => fileRef.current?.click()}
@@ -215,7 +214,7 @@ function ScannerPage() {
                 <Sparkles className="mt-1 h-6 w-6 shrink-0 text-[#E9A15A]" />
                 <div className="space-y-2">
                   <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#D97D3E]">
-                    KI-Empfehlung · Konfidenz 87 %
+                    Demo-Empfehlung · keine echte Konfidenz
                   </p>
                   <p className="font-display text-lg font-bold leading-snug text-[#EADECC] md:text-xl">
                     {profile.empfehlung(monthIdx)}
@@ -253,10 +252,6 @@ function ScannerPage() {
               </div>
             </div>
 
-            <p className="rounded-2xl border-2 border-[#9A7B56] bg-[#1F3327]/60 px-4 py-3 text-xs font-semibold text-[#BCA385]">
-              Hinweis: Diese Habitat-Simulation ersetzt keine Pilzbestimmung. Verzehrfreigabe
-              ausschließlich durch geprüfte Pilzsachverständige (DGfM).
-            </p>
           </div>
         )}
       </section>

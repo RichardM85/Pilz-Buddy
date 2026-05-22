@@ -1,0 +1,251 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-forest: var(--forest);
+  --color-forest-deep: var(--forest-deep);
+  --color-chanterelle: var(--chanterelle);
+  --color-chanterelle-soft: var(--chanterelle-soft);
+  --color-moss: var(--moss);
+  --color-bark: var(--bark);
+  --font-display: var(--font-display);
+
+  --shadow-soft: 0 8px 24px -14px color-mix(in oklab, var(--bark) 35%, transparent);
+  --shadow-glow: 0 12px 32px -12px color-mix(in oklab, var(--chanterelle) 45%, transparent);
+  --shadow-glass: 0 14px 40px -18px color-mix(in oklab, var(--bark) 28%, transparent), inset 0 1px 0 rgba(255,255,255,0.6);
+
+  --gradient-forest: linear-gradient(135deg, var(--forest-deep), var(--forest));
+  --gradient-warm: linear-gradient(135deg, var(--chanterelle), var(--chanterelle-soft));
+  /* Twilight canopy — rust + moss + deep-gold scatter over espresso floor */
+  --gradient-canopy:
+    radial-gradient(900px 600px at 8% 12%, color-mix(in oklab, var(--chanterelle) 18%, transparent) 0%, transparent 55%),
+    radial-gradient(800px 500px at 95% 22%, color-mix(in oklab, #6b3a1f 22%, transparent) 0%, transparent 60%),
+    radial-gradient(1100px 700px at 50% 110%, color-mix(in oklab, var(--moss) 14%, transparent) 0%, transparent 65%),
+    radial-gradient(600px 400px at 100% 85%, color-mix(in oklab, #8a5a2b 16%, transparent) 0%, transparent 60%),
+    var(--background);
+
+  --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  --radius: 1.1rem;
+  --font-display: "Fraunces", Georgia, serif;
+
+  /* === P3 Autumnal Ilex Green — moss forest, golden-bronze, autumn ochre === */
+  --background: #132219;
+  --foreground: #EADECC;
+
+  --card: #1F3327;
+  --card-foreground: #EADECC;
+  --popover: #1F3327;
+  --popover-foreground: #EADECC;
+
+  --forest-deep: #16271D;
+  --forest: #1F3327;
+  --moss: #2F4A37;
+  --chanterelle: #D97D3E;
+  --chanterelle-soft: #E9A15A;
+  --bark: #9A7B56;
+
+  --primary: #D97D3E;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1A2E23;
+  --secondary-foreground: #EADECC;
+  --muted: #1F3327;
+  --muted-foreground: #BCA385;
+  --accent: #D97D3E;
+  --accent-foreground: #FFFFFF;
+  --destructive: oklch(0.55 0.22 28);
+  --destructive-foreground: #FFFFFF;
+  --border: #9A7B56;
+  --input: #1F3327;
+  --ring: #D97D3E;
+}
+
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html, body { background: var(--background); overflow-x: hidden; }
+  body {
+    background: var(--gradient-canopy);
+    background-attachment: fixed;
+    color: var(--color-foreground);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.025em; }
+  h1 { color: #E9A15A; }
+
+}
+
+/* === Premium keyframes === */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(2deg); }
+}
+@keyframes pop-in {
+  0% { transform: scale(0.98) translateY(6px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes fade-slide {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes scan-laser {
+  0%   { transform: translateY(-8%); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateY(108%); opacity: 0; }
+}
+@keyframes falling-leaves {
+  0%   { transform: translate3d(0, -10vh, 0) rotate(0deg); }
+  100% { transform: translate3d(0, 110vh, 0) rotate(540deg); }
+}
+@keyframes swirl-a {
+  0%, 100% { margin-left: 0px; }
+  50%      { margin-left: 40px; }
+}
+@keyframes swirl-b {
+  0%, 100% { margin-left: 0px; }
+  50%      { margin-left: -45px; }
+}
+@keyframes shimmer-sweep {
+  0%   { background-position: -800px 0; }
+  100% { background-position: 800px 0; }
+}
+@keyframes arc-fill {
+  from { stroke-dashoffset: var(--arc-len, 314); }
+  to   { stroke-dashoffset: var(--arc-target, 0); }
+}
+
+.animate-float    { animation: float-slow 6s ease-in-out infinite; }
+.animate-pop-in   { animation: pop-in 0.55s var(--ease-premium) both; }
+.animate-fade-slide { animation: fade-slide 0.5s var(--ease-premium) both; }
+.animate-scan     { animation: scan-laser 1.8s var(--ease-premium) infinite; }
+
+@keyframes orb-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.animate-orb-float { animation: orb-float 4.5s ease-in-out infinite; }
+
+@keyframes dust-rise {
+  0%   { transform: translate3d(0, 0, 0) scale(1);    opacity: 0; }
+  10%  { opacity: 0.9; }
+  100% { transform: translate3d(var(--dx, 20px), -120px, 0) scale(0.6); opacity: 0; }
+}
+.animate-dust { animation: dust-rise var(--d, 9s) linear infinite; }
+
+.shimmer {
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--card) 100%, transparent) 0%,
+    color-mix(in oklab, var(--secondary) 80%, transparent) 50%,
+    color-mix(in oklab, var(--card) 100%, transparent) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer-sweep 1.8s linear infinite;
+}
+
+/* Glass surface — twilight roasted-coffee with copper border */
+.glass {
+  background: color-mix(in oklab, var(--card) 88%, transparent);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow-glass);
+}
+
+/* Tactile press */
+.tactile { transition: transform .35s var(--ease-premium), box-shadow .35s var(--ease-premium), border-color .35s var(--ease-premium); }
+.tactile:hover { transform: translateY(-2px) scale(1.01); }
+.tactile:active { transform: scale(0.97); transition-duration: .08s; }
+
+/* Camera viewfinder corner marks */
+.viewfinder { position: relative; }
+.viewfinder::before, .viewfinder::after,
+.viewfinder > .vf-bl, .viewfinder > .vf-br {
+  content: ""; position: absolute; width: 18px; height: 18px;
+  border-color: color-mix(in oklab, var(--bark) 55%, transparent);
+  pointer-events: none;
+}
+.viewfinder::before { top: 8px; left: 8px;  border-top: 2px solid; border-left: 2px solid; border-top-left-radius: 6px; }
+.viewfinder::after  { top: 8px; right: 8px; border-top: 2px solid; border-right: 2px solid; border-top-right-radius: 6px; }
+.viewfinder > .vf-bl { bottom: 8px; left: 8px;  border-bottom: 2px solid; border-left: 2px solid; border-bottom-left-radius: 6px; }
+.viewfinder > .vf-br { bottom: 8px; right: 8px; border-bottom: 2px solid; border-right: 2px solid; border-bottom-right-radius: 6px; }
+
+/* ============================================================
+ * FOREST-MODE — battery + sunlight-glare optimisations for mobile.
+ * Kills heavy blurs/particles, raises contrast for AAA legibility
+ * under harsh outdoor light. Hardware-accelerated transitions only.
+ * ============================================================ */
+@media (max-width: 768px) {
+  /* No fixed-attachment gradient (forces repaint on scroll on mobile GPUs) */
+  body { background: var(--background); background-attachment: scroll; }
+
+  /* Kill the giant ambient blur orbs */
+  .ambient-bg { display: none !important; }
+
+  /* Disable expensive non-transform/opacity animations */
+  .animate-float,
+  .animate-orb-float,
+  .animate-dust,
+  .animate-scan { animation: none !important; }
+
+  /* Restrict tactile to GPU-cheap ops */
+  .tactile { transition: transform .15s ease-out, opacity .15s ease-out; }
+  .tactile:hover { transform: none; }
+
+  /* AAA contrast bumps for sand-gold on espresso under direct sunlight */
+  :root {
+    --muted-foreground: #D2BFA3;   /* lifted copper-gold under sunlight */
+    --foreground: #F3E8D4;         /* lifted sand-cream */
+    --border: #B89773;             /* sharper golden-bronze edges */
+
+  }
+
+  /* Glass — twilight surface, sharp copper border */
+  .glass {
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    background: color-mix(in oklab, var(--card) 92%, transparent);
+    border: 2px solid var(--border);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

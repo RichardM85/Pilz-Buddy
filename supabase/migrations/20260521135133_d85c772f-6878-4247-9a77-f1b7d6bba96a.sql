@@ -1,0 +1,1 @@
+UPDATE public.mushrooms SET name_de = 'Samtfußrübbling' WHERE id = '3de009b0-bd47-4925-97f4-0bb3d90c9632';

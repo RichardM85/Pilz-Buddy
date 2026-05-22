@@ -1,0 +1,1 @@
+ALTER TABLE public.mushrooms ADD COLUMN IF NOT EXISTS oekologie TEXT NOT NULL DEFAULT 'Unbekannt';

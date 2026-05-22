@@ -1,0 +1,1 @@
+DELETE FROM public.mushrooms WHERE id = '9ae3068b-b342-4861-9844-73c211152952';

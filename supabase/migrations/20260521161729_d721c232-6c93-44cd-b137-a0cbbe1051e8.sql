@@ -1,0 +1,1 @@
+UPDATE public.mushrooms SET type = 'Lamellenpilze' WHERE type = 'Lamellen';
